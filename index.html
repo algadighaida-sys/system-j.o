@@ -1115,7 +1115,29 @@ let statusFilter = "ALL";
 let tradeFilter = "ALL";
 let currentUser = "";
 const TRADES = ["PLUMB","ELECT","CIVIL","LIFT","FIRE","HVAC","BMS"];
-const ACCOUNTS = [ { username: "Admin", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
+const ACCOUNTS_STORAGE_KEY = "amos_accounts_v1";
+const DEFAULT_ACCOUNTS = [ { username: "Admin", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
+
+function loadAccounts(){
+  try{
+    const raw = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch(err){
+    console.warn("Could not read saved accounts, using defaults.", err);
+  }
+  return DEFAULT_ACCOUNTS.slice();
+}
+function saveAccounts(){
+  try{
+    localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(ACCOUNTS));
+  } catch(err){
+    console.warn("Could not save accounts to local storage.", err);
+  }
+}
+const ACCOUNTS = loadAccounts();
 
 function t(key){ return I18N[lang][key]; }
 function tradeName(code){ return lang==="ar" ? TRADE_AR[code] : TRADE_EN[code]; }
@@ -1230,6 +1252,7 @@ function addUserAdmin(){
   if(findAccount(u)){ msgEl.textContent = t("usersAddErrorExists"); msgEl.className = "form-msg error"; return; }
 
   ACCOUNTS.push({ username: u, password: p, question: q, answer: a, role: role });
+  saveAccounts();
   document.getElementById("uNewUser").value = "";
   document.getElementById("uNewPass").value = "";
   document.getElementById("uNewQuestion").value = "";
@@ -1254,6 +1277,7 @@ function deleteUserAdmin(username){
   showConfirmModal(t("usersDeleteConfirm"), () => {
     const idx = ACCOUNTS.findIndex(a => a.username === username);
     if(idx > -1) ACCOUNTS.splice(idx, 1);
+    saveAccounts();
     const msgEl = document.getElementById("usersAddMsg");
     msgEl.textContent = t("usersDeleted"); msgEl.className = "form-msg success";
     buildUsersTable();
@@ -1306,6 +1330,7 @@ function doRecoverReset(){
   if(p !== p2){ errEl.textContent = t("recoverErrorMismatch"); return; }
   if(p.length < 4){ errEl.textContent = t("recoverErrorShort"); return; }
   acct.password = p;
+  saveAccounts();
   errEl.textContent = "";
   okEl.textContent = t("recoverSuccess");
   document.getElementById("loginUser").value = recoverTargetUser;
