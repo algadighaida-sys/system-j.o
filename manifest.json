@@ -1,28 +1,30 @@
 {
-  "name": "AMOS — Maintenance Manager",
+  "name": "AMOS Maintenance Manager",
   "short_name": "AMOS",
-  "description": "AMOS Maintenance Manager — ticket tracking, dashboards, and reports.",
+  "description": "AMOS bilingual maintenance management app for Building 326 — King Abdullah Girls College, IMSIU",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0d1b2a",
   "theme_color": "#0f2033",
-  "orientation": "any",
+  "lang": "ar",
+  "dir": "auto",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-maskable-512.png",
+      "src": "icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AMOS — Maintenance Manager</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f2033">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AMOS">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --ink:#122236;
@@ -134,6 +133,14 @@
   .lang-mini{
     background:none; border:none; color:#c7cfd6; font-size:11.5px; font-weight:600; cursor:pointer; text-decoration:underline;
   }
+  .cloud-status{
+    display:flex; align-items:center; gap:6px; font-size:10.5px; color:#9fb0bf; font-weight:600;
+  }
+  .cloud-dot{ width:8px; height:8px; border-radius:50%; background:#7a8896; flex-shrink:0; }
+  .cloud-dot.on{ background:#2f9e5e; box-shadow:0 0 6px rgba(47,158,94,0.7); }
+  .cloud-dot.connecting{ background:#e6ac2c; animation:pulseDot 1s infinite; }
+  .cloud-dot.off{ background:#7a8896; }
+  @keyframes pulseDot{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
 
   .app-body{ flex:1; display:flex; min-height:0; }
 
@@ -304,6 +311,8 @@
     .titlebar .wtitle{ font-size:10.5px; }
     .logout-mini{ padding:4px 9px; font-size:10.5px; }
     .lang-mini{ font-size:10.5px; }
+    .cloud-status{ font-size:9px; }
+    .cloud-status span:last-child{ display:none; }
     .stats{ grid-template-columns:repeat(2,1fr); gap:10px; }
     .table-card{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
     table{ min-width:680px; }
@@ -373,6 +382,10 @@
     <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
     <div class="wtitle" id="winTitle">AMOS — Maintenance Manager</div>
     <div class="wactions">
+      <span class="cloud-status" id="cloudStatusWrap" title="">
+        <span class="cloud-dot off" id="cloudStatusDot"></span>
+        <span id="cloudStatusLabel" data-i18n="cloudOff">Local only</span>
+      </span>
       <button class="lang-mini" onclick="toggleLang()" id="appLangBtn">العربية</button>
       <button class="logout-mini" onclick="doLogout()" data-i18n="logoutBtn">Sign out</button>
     </div>
@@ -580,8 +593,17 @@
           </div>
           <div class="settings-row">
             <div>
+              <div class="lbl" data-i18n="settingsCloud">Cloud sync</div>
+              <div class="desc" id="settingsCloudDesc" data-i18n="settingsCloudDescOff">Not connected — this device only. See the setup guide (search "SYNC_CONFIG" in the file) to sync all users automatically.</div>
+            </div>
+            <span class="cloud-status" style="font-size:12px;">
+              <span class="cloud-dot off" id="settingsCloudDot"></span>
+            </span>
+          </div>
+          <div class="settings-row">
+            <div>
               <div class="lbl" data-i18n="settingsAbout">About</div>
-              <div class="desc" data-i18n="settingsAboutDesc">Arabian Maintenance Operation Service Co. — internal tool. Client-side only; no data leaves this device unless exported.</div>
+              <div class="desc" data-i18n="settingsAboutDesc">Arabian Maintenance Operation Service Co. — internal tool. Data is stored in this browser unless cloud sync is configured.</div>
             </div>
           </div>
         </div>
@@ -1031,11 +1053,16 @@ en:{
   dataTitle:"Files & data", dataSub:"Export or import the ticket log",
   exportJsonBtn:"Export JSON", exportCsvBtn:"Export CSV", exportXlsxBtn:"Export Excel (.xlsx)", importBtn:"Import data file",
   dataHint:"Files use the same columns as the AMOS Excel report (NO J.O / part. / Complaints location / Notice. / Order status / NOTE / Type). Export saves the current log; import accepts .xlsx, .csv, or .json in this format and replaces the current log.",
+  cloudOn:"Synced", cloudOff:"Local only", cloudConnecting:"Connecting…",
+  settingsCloud:"Cloud sync",
+  settingsCloudDescOff:"Not connected — this device only. See the setup guide (search \"SYNC_CONFIG\" in the file) to sync all users automatically.",
+  settingsCloudDescConnecting:"Connecting to the shared database…",
+  settingsCloudDescOn:"Connected — tickets and accounts sync in real time across every device signed in to this app.",
   importConfirm:"This will replace the current log with the file you selected. Continue?",
   importSuccess:"Data imported successfully.", importError:"Could not read that file. Please check the format and try again.",
   settingsTitle:"Settings", settingsLang:"Language", settingsLangDesc:"Switch the interface language",
   settingsAccount:"Account", settingsAbout:"About",
-  settingsAboutDesc:"Arabian Maintenance Operation Service Co. — internal tool. Client-side only; no data leaves this device unless exported.",
+  settingsAboutDesc:"Arabian Maintenance Operation Service Co. — internal tool. Data is stored in this browser unless cloud sync is configured.",
   signedInAs:"Signed in as",
   noAccount:"New here? Create an account", haveAccount:"Already have an account? Sign in",
   forgotPass:"Forgot password?",
@@ -1089,11 +1116,16 @@ ar:{
   dataTitle:"الملفات والبيانات", dataSub:"تصدير أو استيراد سجل البلاغات",
   exportJsonBtn:"تصدير JSON", exportCsvBtn:"تصدير CSV", exportXlsxBtn:"تصدير Excel (.xlsx)", importBtn:"استيراد ملف بيانات",
   dataHint:"تستخدم الملفات نفس أعمدة تقرير أموس بصيغة الإكسل (NO J.O / part. / Complaints location / Notice. / Order status / NOTE / Type). التصدير يحفظ السجل الحالي، والاستيراد يقبل ملفات ‎.xlsx أو ‎.csv أو ‎.json بهذا التنسيق ويستبدل بها السجل الحالي.",
+  cloudOn:"متزامن سحابيًا", cloudOff:"محلي فقط", cloudConnecting:"جارٍ الاتصال…",
+  settingsCloud:"المزامنة السحابية",
+  settingsCloudDescOff:"غير متصلة — هذا الجهاز فقط. راجع دليل الإعداد (ابحث عن \"SYNC_CONFIG\" داخل الملف) لمزامنة جميع المستخدمين تلقائيًا.",
+  settingsCloudDescConnecting:"جارٍ الاتصال بقاعدة البيانات المشتركة…",
+  settingsCloudDescOn:"متصلة — البلاغات والحسابات تتزامن الآن لحظيًا على كل الأجهزة المسجّلة في التطبيق.",
   importConfirm:"سيؤدي هذا إلى استبدال السجل الحالي بالملف الذي اخترته. هل تريد المتابعة؟",
   importSuccess:"تم استيراد البيانات بنجاح.", importError:"تعذّرت قراءة هذا الملف. يرجى التحقق من الصيغة والمحاولة مرة أخرى.",
   settingsTitle:"الإعدادات", settingsLang:"اللغة", settingsLangDesc:"تبديل لغة الواجهة",
   settingsAccount:"الحساب", settingsAbout:"حول",
-  settingsAboutDesc:"شركة أموس العربية لخدمات التشغيل والصيانة — أداة داخلية. تعمل بالكامل من جهازك؛ لا تُرسل أي بيانات إلا عند التصدير.",
+  settingsAboutDesc:"شركة أموس العربية لخدمات التشغيل والصيانة — أداة داخلية. تُحفظ البيانات في هذا المتصفح إلا إذا تم تفعيل المزامنة السحابية.",
   signedInAs:"مسجّل الدخول باسم",
   noAccount:"مستخدم جديد؟ إنشاء حساب", haveAccount:"لديك حساب بالفعل؟ تسجيل الدخول",
   forgotPass:"نسيت كلمة المرور؟",
@@ -1115,29 +1147,100 @@ let statusFilter = "ALL";
 let tradeFilter = "ALL";
 let currentUser = "";
 const TRADES = ["PLUMB","ELECT","CIVIL","LIFT","FIRE","HVAC","BMS"];
-const ACCOUNTS_STORAGE_KEY = "amos_accounts_v1";
-const DEFAULT_ACCOUNTS = [ { username: "Admin", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
+const ACCOUNTS = [ { username: "Admin", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
 
-function loadAccounts(){
+/* ---------- cloud sync (jsonbin.io) ----------
+   HOW TO ENABLE SYNC FOR ALL USERS (about 2 minutes):
+   1) Go to https://jsonbin.io and click "Sign up" (free, no credit card).
+   2) After signing in, click "Create Bin". Paste this exactly as its content: {}
+      Click "Create".
+   3) On the bin page, copy the Bin ID shown in the URL/header.
+   4) Click your account icon (top right) -> "API Keys" and copy your "X-Master-Key".
+   5) Paste both values into SYNC_CONFIG below, replacing the placeholders, and save this file.
+   6) Re-upload/share this file. Every device that opens it will now save to and read from
+      the same shared bin every few seconds.
+   Until this is filled in, the app works exactly as before (local to this browser only). */
+const SYNC_CONFIG = {
+  binId: "YOUR_BIN_ID",
+  apiKey: "YOUR_MASTER_KEY"
+};
+
+let cloudLastPayloadStr = "";
+let cloudPollTimer = null;
+
+function isCloudConfigured(){
+  return !!SYNC_CONFIG.binId && SYNC_CONFIG.binId !== "YOUR_BIN_ID"
+      && !!SYNC_CONFIG.apiKey && SYNC_CONFIG.apiKey !== "YOUR_MASTER_KEY";
+}
+function cloudUrl(){ return "https://api.jsonbin.io/v3/b/" + SYNC_CONFIG.binId; }
+function setCloudStatus(state){
+  const dot = document.getElementById("cloudStatusDot");
+  const label = document.getElementById("cloudStatusLabel");
+  if(dot && label){
+    dot.className = "cloud-dot " + state;
+    const key = state === "on" ? "cloudOn" : state === "connecting" ? "cloudConnecting" : "cloudOff";
+    label.setAttribute("data-i18n", key);
+    label.textContent = t(key);
+  }
+  const sDot = document.getElementById("settingsCloudDot");
+  const sDesc = document.getElementById("settingsCloudDesc");
+  if(sDot) sDot.className = "cloud-dot " + state;
+  if(sDesc){
+    const descKey = state === "on" ? "settingsCloudDescOn" : state === "connecting" ? "settingsCloudDescConnecting" : "settingsCloudDescOff";
+    sDesc.setAttribute("data-i18n", descKey);
+    sDesc.textContent = t(descKey);
+  }
+}
+async function cloudPush(){
+  if(!isCloudConfigured()) return;
   try{
-    const raw = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed) && parsed.length) return parsed;
+    const payload = { tickets: RAW, users: ACCOUNTS };
+    const str = JSON.stringify(payload);
+    cloudLastPayloadStr = str;
+    await fetch(cloudUrl(), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": SYNC_CONFIG.apiKey },
+      body: str
+    });
+    setCloudStatus("on");
+  } catch(err){ setCloudStatus("off"); }
+}
+async function cloudPull(){
+  if(!isCloudConfigured()) return;
+  try{
+    const res = await fetch(cloudUrl() + "/latest", { headers: { "X-Master-Key": SYNC_CONFIG.apiKey } });
+    if(!res.ok) throw new Error("bad response");
+    const data = await res.json();
+    const rec = data && data.record ? data.record : {};
+    const str = JSON.stringify(rec);
+    if(str !== cloudLastPayloadStr && Array.isArray(rec.tickets)){
+      cloudLastPayloadStr = str;
+      RAW.length = 0; RAW.push(...rec.tickets);
+      if(Array.isArray(rec.users) && rec.users.length){ ACCOUNTS.length = 0; ACCOUNTS.push(...rec.users); }
+      if(document.getElementById("appWindow").classList.contains("open")) render();
+      if(isAdmin()) buildUsersTable();
     }
-  } catch(err){
-    console.warn("Could not read saved accounts, using defaults.", err);
-  }
-  return DEFAULT_ACCOUNTS.slice();
+    setCloudStatus("on");
+  } catch(err){ setCloudStatus("off"); }
 }
-function saveAccounts(){
+async function initCloudSync(){
+  if(!isCloudConfigured()){ setCloudStatus("off"); return; }
+  setCloudStatus("connecting");
   try{
-    localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(ACCOUNTS));
-  } catch(err){
-    console.warn("Could not save accounts to local storage.", err);
-  }
+    const res = await fetch(cloudUrl() + "/latest", { headers: { "X-Master-Key": SYNC_CONFIG.apiKey } });
+    const data = res.ok ? await res.json() : null;
+    const rec = data && data.record;
+    if(rec && Array.isArray(rec.tickets) && rec.tickets.length){
+      RAW.length = 0; RAW.push(...rec.tickets);
+      if(Array.isArray(rec.users) && rec.users.length){ ACCOUNTS.length = 0; ACCOUNTS.push(...rec.users); }
+      cloudLastPayloadStr = JSON.stringify({ tickets: RAW, users: ACCOUNTS });
+      setCloudStatus("on");
+    } else {
+      await cloudPush();
+    }
+  } catch(err){ setCloudStatus("off"); return; }
+  cloudPollTimer = setInterval(cloudPull, 6000);
 }
-const ACCOUNTS = loadAccounts();
 
 function t(key){ return I18N[lang][key]; }
 function tradeName(code){ return lang==="ar" ? TRADE_AR[code] : TRADE_EN[code]; }
@@ -1252,7 +1355,7 @@ function addUserAdmin(){
   if(findAccount(u)){ msgEl.textContent = t("usersAddErrorExists"); msgEl.className = "form-msg error"; return; }
 
   ACCOUNTS.push({ username: u, password: p, question: q, answer: a, role: role });
-  saveAccounts();
+  cloudPush();
   document.getElementById("uNewUser").value = "";
   document.getElementById("uNewPass").value = "";
   document.getElementById("uNewQuestion").value = "";
@@ -1277,7 +1380,7 @@ function deleteUserAdmin(username){
   showConfirmModal(t("usersDeleteConfirm"), () => {
     const idx = ACCOUNTS.findIndex(a => a.username === username);
     if(idx > -1) ACCOUNTS.splice(idx, 1);
-    saveAccounts();
+    cloudPush();
     const msgEl = document.getElementById("usersAddMsg");
     msgEl.textContent = t("usersDeleted"); msgEl.className = "form-msg success";
     buildUsersTable();
@@ -1330,7 +1433,7 @@ function doRecoverReset(){
   if(p !== p2){ errEl.textContent = t("recoverErrorMismatch"); return; }
   if(p.length < 4){ errEl.textContent = t("recoverErrorShort"); return; }
   acct.password = p;
-  saveAccounts();
+  cloudPush();
   errEl.textContent = "";
   okEl.textContent = t("recoverSuccess");
   document.getElementById("loginUser").value = recoverTargetUser;
@@ -1534,6 +1637,7 @@ function addTicket(){
   const record = {no:nextNo, trade, worktype, loc, complaint, status, note, complaintAr:null, complaintEn:null, building, engineer, datetime};
   if(lang === "ar") record.complaintAr = complaint; else record.complaintEn = complaint;
   RAW.push(record);
+  cloudPush();
   document.getElementById("fLocation").value = "";
   document.getElementById("fComplaint").value = "";
   document.getElementById("fStatus").value = "OK";
@@ -1605,6 +1709,7 @@ function saveEditModal(){
   r.complaintAr = null;
   r.complaintEn = null;
   if(lang === "ar") r.complaintAr = complaint; else r.complaintEn = complaint;
+  cloudPush();
   closeEditModal();
   render();
 }
@@ -1612,6 +1717,7 @@ function deleteTicket(no){
   showConfirmModal(t("deleteConfirm"), () => {
     const idx = RAW.findIndex(x => x.no === no);
     if(idx > -1) RAW.splice(idx, 1);
+    cloudPush();
     render();
   });
 }
@@ -1757,6 +1863,7 @@ function runImport(file, event){
     try{
       if(!Array.isArray(newData) || newData.length === 0) throw new Error("empty");
       RAW.length = 0; RAW.push(...newData);
+      cloudPush();
       importMsg.textContent = t("importSuccess"); importMsg.className = "form-msg success";
       render();
     } catch(err){
@@ -1801,13 +1908,10 @@ function runImport(file, event){
 
 /* ---------- init ---------- */
 buildChips();
-
-/* ---------- PWA: register service worker ---------- */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function (err) {
-      console.warn("Service worker registration failed:", err);
-    });
+initCloudSync();
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
   });
 }
 </script>
