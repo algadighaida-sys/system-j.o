@@ -15,6 +15,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --ink:#122236;
@@ -594,7 +596,7 @@
           <div class="settings-row">
             <div>
               <div class="lbl" data-i18n="settingsCloud">Cloud sync</div>
-              <div class="desc" id="settingsCloudDesc" data-i18n="settingsCloudDescOff">Not connected — this device only. See the setup guide (search "SYNC_CONFIG" in the file) to sync all users automatically.</div>
+              <div class="desc" id="settingsCloudDesc" data-i18n="settingsCloudDescOff">Not connected — this device only. See the setup guide (search "FIREBASE_CONFIG" in the file) to sync all users in real time.</div>
             </div>
             <span class="cloud-status" style="font-size:12px;">
               <span class="cloud-dot off" id="settingsCloudDot"></span>
@@ -1055,7 +1057,7 @@ en:{
   dataHint:"Files use the same columns as the AMOS Excel report (NO J.O / part. / Complaints location / Notice. / Order status / NOTE / Type). Export saves the current log; import accepts .xlsx, .csv, or .json in this format and replaces the current log.",
   cloudOn:"Synced", cloudOff:"Local only", cloudConnecting:"Connecting…",
   settingsCloud:"Cloud sync",
-  settingsCloudDescOff:"Not connected — this device only. See the setup guide (search \"SYNC_CONFIG\" in the file) to sync all users automatically.",
+  settingsCloudDescOff:"Not connected — this device only. See the setup guide (search \"FIREBASE_CONFIG\" in the file) to sync all users in real time.",
   settingsCloudDescConnecting:"Connecting to the shared database…",
   settingsCloudDescOn:"Connected — tickets and accounts sync in real time across every device signed in to this app.",
   importConfirm:"This will replace the current log with the file you selected. Continue?",
@@ -1118,7 +1120,7 @@ ar:{
   dataHint:"تستخدم الملفات نفس أعمدة تقرير أموس بصيغة الإكسل (NO J.O / part. / Complaints location / Notice. / Order status / NOTE / Type). التصدير يحفظ السجل الحالي، والاستيراد يقبل ملفات ‎.xlsx أو ‎.csv أو ‎.json بهذا التنسيق ويستبدل بها السجل الحالي.",
   cloudOn:"متزامن سحابيًا", cloudOff:"محلي فقط", cloudConnecting:"جارٍ الاتصال…",
   settingsCloud:"المزامنة السحابية",
-  settingsCloudDescOff:"غير متصلة — هذا الجهاز فقط. راجع دليل الإعداد (ابحث عن \"SYNC_CONFIG\" داخل الملف) لمزامنة جميع المستخدمين تلقائيًا.",
+  settingsCloudDescOff:"غير متصلة — هذا الجهاز فقط. راجع دليل الإعداد (ابحث عن \"FIREBASE_CONFIG\" داخل الملف) لمزامنة جميع المستخدمين لحظيًا.",
   settingsCloudDescConnecting:"جارٍ الاتصال بقاعدة البيانات المشتركة…",
   settingsCloudDescOn:"متصلة — البلاغات والحسابات تتزامن الآن لحظيًا على كل الأجهزة المسجّلة في التطبيق.",
   importConfirm:"سيؤدي هذا إلى استبدال السجل الحالي بالملف الذي اخترته. هل تريد المتابعة؟",
@@ -1149,30 +1151,37 @@ let currentUser = "";
 const TRADES = ["PLUMB","ELECT","CIVIL","LIFT","FIRE","HVAC","BMS"];
 const ACCOUNTS = [ { username: "Admin", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
 
-/* ---------- cloud sync (jsonbin.io) ----------
-   HOW TO ENABLE SYNC FOR ALL USERS (about 2 minutes):
-   1) Go to https://jsonbin.io and click "Sign up" (free, no credit card).
-   2) After signing in, click "Create Bin". Paste this exactly as its content: {}
-      Click "Create".
-   3) On the bin page, copy the Bin ID shown in the URL/header.
-   4) Click your account icon (top right) -> "API Keys" and copy your "X-Master-Key".
-   5) Paste both values into SYNC_CONFIG below, replacing the placeholders, and save this file.
-   6) Re-upload/share this file. Every device that opens it will now save to and read from
-      the same shared bin every few seconds.
+/* ---------- cloud sync (Firebase Firestore) ----------
+   HOW TO ENABLE REAL-TIME SYNC FOR ALL USERS (about 5 minutes):
+   1) Go to https://console.firebase.google.com, sign in with any Google account,
+      click "Add project", give it any name, click through to "Create project"
+      (you can turn OFF Google Analytics, it's not needed).
+   2) In the left menu click "Build" -> "Firestore Database" -> "Create database".
+      Choose "Start in test mode", pick any nearby location, click "Enable".
+   3) Click the gear icon (top left, next to "Project Overview") -> "Project settings".
+      Scroll down to "Your apps", click the </> (web) icon, give the app any nickname,
+      click "Register app".
+   4) Firebase now shows a code block containing a firebaseConfig object with apiKey,
+      authDomain, projectId, storageBucket, messagingSenderId, appId.
+      Copy those 6 values into FIREBASE_CONFIG below, replacing the placeholders exactly.
+   5) Save this file and re-upload/share it. Every device that opens it will now sync
+      tickets and user accounts instantly through the same Firestore database.
    Until this is filled in, the app works exactly as before (local to this browser only). */
-const SYNC_CONFIG = {
-  binId: "YOUR_BIN_ID",
-  apiKey: "YOUR_MASTER_KEY"
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCiani0nHylryXhVtmrN5tn4e81mHTCyv0",
+  authDomain: "amos-326.firebaseapp.com",
+  projectId: "amos-326",
+  storageBucket: "amos-326.firebasestorage.app",
+  messagingSenderId: "926256255936",
+  appId: "1:926256255936:web:9747e8e6c10be1057fee25"
 };
 
-let cloudLastPayloadStr = "";
-let cloudPollTimer = null;
+let cloudDb = null;
+let cloudPushTimer = null;
 
 function isCloudConfigured(){
-  return !!SYNC_CONFIG.binId && SYNC_CONFIG.binId !== "YOUR_BIN_ID"
-      && !!SYNC_CONFIG.apiKey && SYNC_CONFIG.apiKey !== "YOUR_MASTER_KEY";
+  return !!FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
 }
-function cloudUrl(){ return "https://api.jsonbin.io/v3/b/" + SYNC_CONFIG.binId; }
 function setCloudStatus(state){
   const dot = document.getElementById("cloudStatusDot");
   const label = document.getElementById("cloudStatusLabel");
@@ -1191,55 +1200,60 @@ function setCloudStatus(state){
     sDesc.textContent = t(descKey);
   }
 }
-async function cloudPush(){
-  if(!isCloudConfigured()) return;
-  try{
-    const payload = { tickets: RAW, users: ACCOUNTS };
-    const str = JSON.stringify(payload);
-    cloudLastPayloadStr = str;
-    await fetch(cloudUrl(), {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "X-Master-Key": SYNC_CONFIG.apiKey },
-      body: str
-    });
-    setCloudStatus("on");
-  } catch(err){ setCloudStatus("off"); }
-}
-async function cloudPull(){
-  if(!isCloudConfigured()) return;
-  try{
-    const res = await fetch(cloudUrl() + "/latest", { headers: { "X-Master-Key": SYNC_CONFIG.apiKey } });
-    if(!res.ok) throw new Error("bad response");
-    const data = await res.json();
-    const rec = data && data.record ? data.record : {};
-    const str = JSON.stringify(rec);
-    if(str !== cloudLastPayloadStr && Array.isArray(rec.tickets)){
-      cloudLastPayloadStr = str;
-      RAW.length = 0; RAW.push(...rec.tickets);
-      if(Array.isArray(rec.users) && rec.users.length){ ACCOUNTS.length = 0; ACCOUNTS.push(...rec.users); }
-      if(document.getElementById("appWindow").classList.contains("open")) render();
-      if(isAdmin()) buildUsersTable();
-    }
-    setCloudStatus("on");
-  } catch(err){ setCloudStatus("off"); }
-}
-async function initCloudSync(){
-  if(!isCloudConfigured()){ setCloudStatus("off"); return; }
-  setCloudStatus("connecting");
-  try{
-    const res = await fetch(cloudUrl() + "/latest", { headers: { "X-Master-Key": SYNC_CONFIG.apiKey } });
-    const data = res.ok ? await res.json() : null;
-    const rec = data && data.record;
-    if(rec && Array.isArray(rec.tickets) && rec.tickets.length){
-      RAW.length = 0; RAW.push(...rec.tickets);
-      if(Array.isArray(rec.users) && rec.users.length){ ACCOUNTS.length = 0; ACCOUNTS.push(...rec.users); }
-      cloudLastPayloadStr = JSON.stringify({ tickets: RAW, users: ACCOUNTS });
+function cloudPush(){
+  // Debounced: several edits in the same second collapse into one write.
+  if(!cloudDb) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(async () => {
+    try{
+      const ticketsCol = cloudDb.collection("tickets");
+      const usersCol = cloudDb.collection("users");
+      const [tSnap, uSnap] = await Promise.all([ticketsCol.get(), usersCol.get()]);
+      const batch = cloudDb.batch();
+      const keepTicketIds = new Set(RAW.map(r => String(r.no)));
+      const keepUserIds = new Set(ACCOUNTS.map(a => a.username));
+      tSnap.docs.forEach(d => { if(!keepTicketIds.has(d.id)) batch.delete(d.ref); });
+      uSnap.docs.forEach(d => { if(!keepUserIds.has(d.id)) batch.delete(d.ref); });
+      RAW.forEach(r => batch.set(ticketsCol.doc(String(r.no)), r));
+      ACCOUNTS.forEach(a => batch.set(usersCol.doc(a.username), a));
+      await batch.commit();
       setCloudStatus("on");
-    } else {
-      await cloudPush();
-    }
-  } catch(err){ setCloudStatus("off"); return; }
-  cloudPollTimer = setInterval(cloudPull, 6000);
+    } catch(err){ setCloudStatus("off"); }
+  }, 400);
+}
+function initCloudSync(){
+  if(!isCloudConfigured() || typeof firebase === "undefined"){
+    setCloudStatus("off");
+    return;
+  }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    cloudDb = firebase.firestore();
+    setCloudStatus("connecting");
+
+    cloudDb.collection("tickets").limit(1).get().then(snap => {
+      if(snap.empty && RAW.length) cloudPush();
+    }).catch(()=>{});
+    cloudDb.collection("users").limit(1).get().then(snap => {
+      if(snap.empty && ACCOUNTS.length) cloudPush();
+    }).catch(()=>{});
+
+    cloudDb.collection("tickets").onSnapshot(snap => {
+      const docs = snap.docs.map(d => d.data());
+      docs.sort((a,b) => (a.no||0) - (b.no||0));
+      RAW.length = 0; RAW.push(...docs);
+      setCloudStatus("on");
+      if(document.getElementById("appWindow").classList.contains("open")) render();
+    }, () => setCloudStatus("off"));
+
+    cloudDb.collection("users").onSnapshot(snap => {
+      const docs = snap.docs.map(d => d.data());
+      if(docs.length){ ACCOUNTS.length = 0; ACCOUNTS.push(...docs); }
+      if(isAdmin()) buildUsersTable();
+    }, () => {});
+  } catch(err){
+    setCloudStatus("off");
+  }
 }
 
 function t(key){ return I18N[lang][key]; }
