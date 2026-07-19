@@ -1,7 +1,7 @@
 /* AMOS Maintenance Manager — offline cache
    Bump CACHE_NAME (e.g. amos-cache-v2) any time index.html is updated,
    so returning users get the new version instead of a stale cached copy. */
-const CACHE_NAME = "amos-cache-v1";
+const CACHE_NAME = "amos-cache-v3";
 const CORE_ASSETS = [
   "./",
   "./index.html",

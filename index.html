@@ -1149,7 +1149,7 @@ let statusFilter = "ALL";
 let tradeFilter = "ALL";
 let currentUser = "";
 const TRADES = ["PLUMB","ELECT","CIVIL","LIFT","FIRE","HVAC","BMS"];
-const ACCOUNTS = [ { username: "Admin", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
+const ACCOUNTS = [ { username: "Ghaida Algadi", password: "326", question: "What is the building number?", answer: "326", role: "admin" } ];
 
 /* ---------- cloud sync (Firebase Firestore) ----------
    HOW TO ENABLE REAL-TIME SYNC FOR ALL USERS (about 5 minutes):
@@ -1249,6 +1249,13 @@ function initCloudSync(){
     cloudDb.collection("users").onSnapshot(snap => {
       const docs = snap.docs.map(d => d.data());
       if(docs.length){ ACCOUNTS.length = 0; ACCOUNTS.push(...docs); }
+      const oldIdx = ACCOUNTS.findIndex(a => a.username === "Admin");
+      if(oldIdx > -1 && !ACCOUNTS.some(a => a.username === "Ghaida Algadi")){
+        ACCOUNTS[oldIdx].username = "Ghaida Algadi";
+        if(currentUser === "Admin") currentUser = "Ghaida Algadi";
+        cloudPush();
+        updateUserLine();
+      }
       if(isAdmin()) buildUsersTable();
     }, () => {});
   } catch(err){
